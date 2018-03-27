@@ -51,6 +51,9 @@ volumes:
   #    o: addr=172.16.18.11,rw
   #    device: ":/docker01_mcA/docker/volumes/wordpress/mariadb-data"
 
+secrets:
+  mysql_root_password:
+     file: .secrets/mysql_root_password
 
 services:
   nginx:
@@ -124,11 +127,14 @@ services:
           volume:
              nocopy: true
 
+    secrets:
+        - mysql_root_password
     environment:
         - WORDPRESS_DB_NAME=wpdbs
         - WORDPRESS_TABLE_PREFIX=wp_
         - WORDPRESS_DB_HOST=database
-        - WORDPRESS_DB_PASSWORD=aqwe123
+        #- WORDPRESS_DB_PASSWORD=aqwe123
+        - WORDPRESS_DB_PASSWORD_FILE=/run/secrets/mysql_root_password
     networks:
         - frontend
         - backend
@@ -147,15 +153,18 @@ services:
         # - '3306:3306'
     volumes:
         # - mariadb-data0:/var/lib/mysql
-         - /dockernfs/docker/volumes/wordpress/mariadb-data/:/var/lib/mysql:rw
+        - /dockernfs/docker/volumes/wordpress/mariadb-data/:/var/lib/mysql:rw
         # - type: volume
         #   source: mariadb-data
         #   target: /var/lib/mysql/wpdb
         #   volume:
         #      nocopy: true
-
+    
+    secrets:
+        - mysql_root_password
     environment:
-        - MYSQL_ROOT_PASSWORD=aqwe123
+        #- MYSQL_ROOT_PASSWORD=aqwe123
+        - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
     networks:
         - backend
     deploy:
