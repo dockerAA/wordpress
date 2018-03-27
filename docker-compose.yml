@@ -6,22 +6,50 @@ networks:
   backend:
 
 volumes:
+  nginx-logs:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=172.16.18.11,rw
+      device: ":/docker01_mcA/docker/volumes/wordpress/nginx-logs"
+
   wordpress-code:
     driver: local
     driver_opts:
       type: nfs
       o: addr=172.16.18.11,rw
       device: ":/docker01_mcA/docker/volumes/wordpress/wordpress-code"
-
-  #mariadb-data0:
-  #  driver: local
-
-  mariadb-data:
+  
+  wordpress-content:
     driver: local
     driver_opts:
       type: nfs
       o: addr=172.16.18.11,rw
-      device: ":/docker01_mcA/docker/volumes/wordpress/mariadb-data"
+      device: ":/docker01_mcA/docker/volumes/wordpress/wordpress-content"
+
+  wordpress-uploads:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=172.16.18.11,rw
+      device: ":/docker01_mcA/docker/volumes/wordpress/wordpress-uploads"
+
+
+  #mariadb-data0:
+  #  driver: local
+
+  #! mariadb'nin Dockerfile dosyasında (https://hub.docker.com/_/mariadb/)
+  #! "chown -R mysql:mysql /var/lib/mysql"
+  #! komutu netapp nfs diskindeki ".snapshot" dizinini değiştiremediği için hata:
+  #! "chown: changing ownership of '/var/lib/mysql/.snapshot': read-only file system"
+  #! verip container çalışmıyor.
+  #! normalde netapp diskindeki ".snapshot" dizinini görmemesi lazım...
+  #mariadb-data:
+  #  driver: local
+  #  driver_opts:
+  #    type: nfs
+  #    o: addr=172.16.18.11,rw
+  #    device: ":/docker01_mcA/docker/volumes/wordpress/mariadb-data"
 
 
 services:
@@ -36,8 +64,26 @@ services:
           volume:
              nocopy: true
         # - "${PWD}/code/wp-content:/var/www/html/wp-content"
+        - type: volume
+          source: wordpress-content
+          target: /var/www/html/wp-content
+          volume:
+             nocopy: true
+
         # - "${PWD}/uploads:/var/www/html/wp-content/uploads"
-        # - "${PWD}/logs/nginx/var/log/nginx"
+        - type: volume
+          source: wordpress-uploads
+          target: /var/www/html/wp-content/uploads
+          volume:
+             nocopy: true   
+     
+        # - "${PWD}/logs/nginx:/var/log/nginx"
+        - type: volume
+          source: nginx-logs
+          target: /var/log/nginx
+          volume:
+             nocopy: true
+
     ports:
         - "80:80"
         - "443:443"
@@ -65,7 +111,19 @@ services:
              nocopy: true
         # - ${PWD}/code/wordpress.4.9:/var/www/html
         # - "${PWD}/code/wp-content:/var/www/html/wp-content"
+        - type: volume
+          source: wordpress-content
+          target: /var/www/html/wp-content
+          volume:
+             nocopy: true
+
         # - "${PWD}/uploads:/var/www/html/wp-content/uploads"
+        - type: volume
+          source: wordpress-uploads
+          target: /var/www/html/wp-content/uploads
+          volume:
+             nocopy: true
+
     environment:
         - WORDPRESS_DB_NAME=wpdbs
         - WORDPRESS_TABLE_PREFIX=wp_
@@ -89,12 +147,12 @@ services:
         # - '3306:3306'
     volumes:
         # - mariadb-data0:/var/lib/mysql
-        # - /dockernfs/docker/volumes/wordpress/mariadb-data/:/var/lib/mysql:rw
-         - type: volume
-           source: mariadb-data
-           target: /var/lib/mysql/wpdb
-           volume:
-              nocopy: true
+         - /dockernfs/docker/volumes/wordpress/mariadb-data/:/var/lib/mysql:rw
+        # - type: volume
+        #   source: mariadb-data
+        #   target: /var/lib/mysql/wpdb
+        #   volume:
+        #      nocopy: true
 
     environment:
         - MYSQL_ROOT_PASSWORD=aqwe123

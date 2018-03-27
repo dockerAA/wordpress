@@ -16,12 +16,12 @@ volumes:
   #mariadb-data0:
   #  driver: local
 
-  #mariadb-data:
-  #  driver: local
-  #  driver_opts:
-  #    type: nfs
-  #    o: addr=172.16.18.11,rw
-  #    device: ":/docker01_mcA/docker/volumes/wordpress/mariadb-data"
+  mariadb-data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=172.16.18.11,rw
+      device: ":/docker01_mcA/docker/volumes/wordpress/mariadb-data"
 
 
 services:
@@ -90,11 +90,11 @@ services:
     volumes:
         # - mariadb-data0:/var/lib/mysql
         - /dockernfs/docker/volumes/wordpress/mariadb-data/:/var/lib/mysql:rw
-        # - type: volume
-        #   source: mariadb-data
-        #   target: /var/lib/mysql
-        #   volume:
-        #      nocopy: true
+        - type: volume
+          source: mariadb-data
+          target: /var/lib/mysql-nfs
+          volume:
+             nocopy: true
 
     environment:
         - MYSQL_ROOT_PASSWORD=aqwe123
