@@ -34,7 +34,6 @@ volumes:
       o: addr=172.16.18.11,rw
       device: ":/docker01_mcA/docker/volumes/wordpress/wordpress-uploads"
 
-
   #mariadb-data0:
   #  driver: local
 
@@ -51,15 +50,15 @@ volumes:
   #    o: addr=172.16.18.11,rw
   #    device: ":/docker01_mcA/docker/volumes/wordpress/mariadb-data"
 
-secrets:
-  mysql_root_password:
-     file: .secrets/mysql_root_password
+#secrets:
+#  mysql_root_password:
+#     file: .secrets/mysql_root_password
 
 services:
   nginx:
     image: nginx:1.13
     volumes:
-        - /dockernfs/docker/stack/wordpress/config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+        - /dockernfs/docker/stacks/wordpress/config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
         # - wordpress-code:/var/www/html
         - type: volume
           source: wordpress-code
@@ -72,21 +71,18 @@ services:
           target: /var/www/html/wp-content
           volume:
              nocopy: true
-
         # - "${PWD}/uploads:/var/www/html/wp-content/uploads"
         - type: volume
           source: wordpress-uploads
           target: /var/www/html/wp-content/uploads
           volume:
              nocopy: true   
-     
         # - "${PWD}/logs/nginx:/var/log/nginx"
         - type: volume
           source: nginx-logs
           target: /var/log/nginx
           volume:
              nocopy: true
-
     ports:
         - "80:80"
         - "443:443"
@@ -119,22 +115,20 @@ services:
           target: /var/www/html/wp-content
           volume:
              nocopy: true
-
         # - "${PWD}/uploads:/var/www/html/wp-content/uploads"
         - type: volume
           source: wordpress-uploads
           target: /var/www/html/wp-content/uploads
           volume:
              nocopy: true
-
-    secrets:
-        - mysql_root_password
+    #secrets:
+    #    - mysql_root_password
     environment:
         - WORDPRESS_DB_NAME=wpdbs
         - WORDPRESS_TABLE_PREFIX=wp_
         - WORDPRESS_DB_HOST=database
-        #- WORDPRESS_DB_PASSWORD=aqwe123
-        - WORDPRESS_DB_PASSWORD_FILE=/run/secrets/mysql_root_password
+        - WORDPRESS_DB_PASSWORD=aqwe123
+        #- WORDPRESS_DB_PASSWORD_FILE=/run/secrets/mysql_root_password
     networks:
         - frontend
         - backend
@@ -159,12 +153,11 @@ services:
         #   target: /var/lib/mysql/wpdb
         #   volume:
         #      nocopy: true
-    
-    secrets:
-        - mysql_root_password
+    #secrets:
+    #    - mysql_root_password
     environment:
-        #- MYSQL_ROOT_PASSWORD=aqwe123
-        - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+        - MYSQL_ROOT_PASSWORD=aqwe123
+        #- MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
     networks:
         - backend
     deploy:

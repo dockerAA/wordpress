@@ -28,7 +28,7 @@ services:
   nginx:
     image: nginx:1.13
     volumes:
-        - /dockernfs/docker/stack/wordpress/config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+        - /dockernfs/docker/stacks/wordpress/config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
         # - wordpress-code:/var/www/html
         - type: volume
           source: wordpress-code
