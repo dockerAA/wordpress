@@ -50,9 +50,13 @@ volumes:
   #    o: addr=172.16.18.11,rw
   #    device: ":/docker01_mcA/docker/volumes/wordpress/mariadb-data"
 
-#secrets:
-#  mysql_root_password:
-#     file: .secrets/mysql_root_password
+secrets:
+  mysql_root_password:
+     file: .secrets/mysql_root_password
+  mysql_user:
+     file: .secrets/mysql_user
+  mysql_password:
+     file: .secrets/mysql_password
 
 services:
   nginx:
@@ -91,7 +95,7 @@ services:
     depends_on:
         - wordpress
     deploy:
-      replicas: 1
+      replicas: 3
       update_config:
         parallelism: 1
         delay: 10s
@@ -121,21 +125,24 @@ services:
           target: /var/www/html/wp-content/uploads
           volume:
              nocopy: true
-    #secrets:
-    #    - mysql_root_password
+    secrets:
+        #- mysql_root_password
+        - mysql_user
+        - mysql_password
     environment:
         - WORDPRESS_DB_NAME=wpdbs
         - WORDPRESS_TABLE_PREFIX=wp_
         - WORDPRESS_DB_HOST=database
-        - WORDPRESS_DB_PASSWORD=aqwe123
-        #- WORDPRESS_DB_PASSWORD_FILE=/run/secrets/mysql_root_password
+        - WORDPRESS_DB_USER_FILE=/run/secrets/mysql_user
+        #- WORDPRESS_DB_PASSWORD=aqwe123
+        - WORDPRESS_DB_PASSWORD_FILE=/run/secrets/mysql_password
     networks:
         - frontend
         - backend
     depends_on:
         - database
     deploy:
-      replicas: 1
+      replicas: 3
       update_config:
         parallelism: 1
         delay: 10s
@@ -153,11 +160,15 @@ services:
         #   target: /var/lib/mysql/wpdb
         #   volume:
         #      nocopy: true
-    #secrets:
-    #    - mysql_root_password
+    secrets:
+        - mysql_root_password
+        - mysql_user
+        - mysql_password
     environment:
-        - MYSQL_ROOT_PASSWORD=aqwe123
-        #- MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+        #- MYSQL_ROOT_PASSWORD=aqwe123
+        - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+        - MYSQL_USER_FILE=/run/secrets/mysql_user
+        - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
     networks:
         - backend
     deploy:
