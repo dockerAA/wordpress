@@ -62,7 +62,10 @@ services:
   nginx:
     image: nginx:1.13
     volumes:
-        - /dockernfs/docker/stacks/wordpress/config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+        - "${PWD}/config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro"
+        - "${PWD}/.sslc9ekey/bundle.crt:/etc/ssl/certs/server.crt:ro"
+        - "${PWD}/.sslc9ekey/IYTEJOKERSSLSertifika.key:/etc/ssl/certs/server.key:ro" 
+        - "${PWD}/.sslc9ekey/dhparam.pem:/etc/ssl/certs/dhparam.pem:ro"
         # - wordpress-code:/var/www/html
         - type: volume
           source: wordpress-code
@@ -154,7 +157,7 @@ services:
         # - '3306:3306'
     volumes:
         # - mariadb-data0:/var/lib/mysql
-        - /dockernfs/docker/volumes/wordpress/mariadb-data/:/var/lib/mysql:rw
+        - "/dockernfs/docker/volumes/wordpress/mariadb-data/:/var/lib/mysql:rw"
         # - type: volume
         #   source: mariadb-data
         #   target: /var/lib/mysql/wpdb
