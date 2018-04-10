@@ -6,12 +6,15 @@ networks:
   backend:
 
 volumes:
-  nginx-logs:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=172.16.18.11,rw
-      device: ":/docker01_mcA/docker/volumes/wordpress/nginx-logs"
+  #! change log files
+  #! error.log -> /dev/stderr
+  #! access.log -> /dev/stdout
+  #2 nginx-logs:
+  #2   driver: local
+  #2   driver_opts:
+  #2     type: nfs
+  #2     o: addr=172.16.18.11,rw
+  #2     device: ":/docker01_mcA/docker/volumes/wordpress/nginx-logs"
 
   wordpress-code:
     driver: local
@@ -84,12 +87,12 @@ services:
           target: /var/www/html/wp-content/uploads
           volume:
              nocopy: true   
-        # - "${PWD}/logs/nginx:/var/log/nginx"
-        - type: volume
-          source: nginx-logs
-          target: /var/log/nginx
-          volume:
-             nocopy: true
+        #1 - "${PWD}/logs/nginx:/var/log/nginx"
+        #2 - type: volume
+        #2   source: nginx-logs
+        #2   target: /var/log/nginx
+        #2   volume:
+        #2      nocopy: true
     ports:
         - "80:80"
         - "443:443"
