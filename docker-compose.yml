@@ -65,6 +65,7 @@ services:
   nginx:
     image: nginx:1.13
     volumes:
+        - "${PWD}/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro"
         - "${PWD}/config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro"
         - "${PWD}/.sslc9ekey/bundle.crt:/etc/ssl/certs/server.crt:ro"
         - "${PWD}/.sslc9ekey/IYTEJOKERSSLSertifika.key:/etc/ssl/certs/server.key:ro" 
