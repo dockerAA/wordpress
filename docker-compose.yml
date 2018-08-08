@@ -190,7 +190,7 @@ services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     ports:
-      - 9070:80
+      - 9060:80
     networks:
       - backend
     depends_on:
