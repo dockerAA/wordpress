@@ -102,7 +102,8 @@ services:
     depends_on:
         - wordpress
     deploy:
-      replicas: 3
+      #  replicas: 3
+      mode: global
       update_config:
         parallelism: 1
         delay: 10s
@@ -149,7 +150,8 @@ services:
     depends_on:
         - database
     deploy:
-      replicas: 3
+      #  replicas: 3
+      mode: global
       update_config:
         parallelism: 1
         delay: 10s
