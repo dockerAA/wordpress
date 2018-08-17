@@ -113,7 +113,8 @@ services:
     image: wordpress:4.9-php7.2-fpm
     # ports:
         # - '9000:9000'
-    volumes:
+    volumes: 
+        - "${PWD}/config/php/php.ini:/usr/local/etc/php/php.ini:ro"
         # - wordpress-code:/var/www/html
         - type: volume
           source: wordpress-code
