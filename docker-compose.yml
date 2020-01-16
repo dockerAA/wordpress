@@ -63,7 +63,7 @@ secrets:
 
 services:
   nginx:
-    image: nginx:1.13
+    image: nginx:1.15.7
     volumes:
         - "${PWD}/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro"
         - "${PWD}/config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro"
