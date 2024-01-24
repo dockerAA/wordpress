@@ -18,9 +18,11 @@ services:
     volumes:
         - "./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro"
         - "./config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro"
-        - "./.sslc9ekey/bundle.crt:/etc/ssl/certs/server.crt:ro"
-        - "./.sslc9ekey/IYTEJOKERSSLSertifika.key:/etc/ssl/certs/server.key:ro" 
-        - "./.sslc9ekey/dhparam.pem:/etc/ssl/certs/dhparam.pem:ro"
+          # - "./.sslc9ekey/bundle.crt:/etc/ssl/certs/server.crt:ro"
+          #- "./.sslc9ekey/IYTEJOKERSSLSertifika.key:/etc/ssl/certs/server.key:ro" 
+          #- "./.sslc9ekey/dhparam.pem:/etc/ssl/certs/dhparam.pem:ro"
+        - ./.sslcertbot/www/:/var/www/certbot/:ro
+        - ./.sslcertbot/letsencrypt/:/etc/nginx/ssl/:ro
         - "/dockerfiles/volumes/wordpress-code/:/var/www/html:rw"
         - "/dockerfiles/volumes/wordpress-content/:/var/www/html/wp-content:rw"
         - "/dockerfiles/volumes/wordpress-uploads/:/var/www/html/wp-content/uploads:rw"
@@ -85,6 +87,13 @@ services:
     depends_on:
       - database
     environment:
-        - PMA_ARBITRARY=1
+      - PMA_ARBITRARY=1
     restart: on-failure
 
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./.sslcertbot/www/:/var/www/certbot/:rw
+      - ./.sslcertbot/letsencrypt/:/etc/letsencrypt/:rw
+      - ./.sslcertbot/log/:/var/log/letsencrypt/:rw
+    command: certonly --webroot -w /var/www/certbot --force-renewal --email alperalbayrak@iyte.edu.tr -d iytebilimkampi.iyte.edu.tr --non-interactive --agree-tos
