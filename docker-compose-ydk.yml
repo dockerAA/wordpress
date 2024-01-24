@@ -5,7 +5,7 @@ networks:
   frontend:
   backend:
 
-    #volumes:
+volumes:
   #! change log files
   #! error.log -> /dev/stderr
   #! access.log -> /dev/stdout
@@ -70,9 +70,9 @@ services:
         - "./.sslc9ekey/bundle.crt:/etc/ssl/certs/server.crt:ro"
         - "./.sslc9ekey/IYTEJOKERSSLSertifika.key:/etc/ssl/certs/server.key:ro" 
         - "./.sslc9ekey/dhparam.pem:/etc/ssl/certs/dhparam.pem:ro"
-        - "/dockerfiles/volumes/wordpress-code/:/var/www/html:rw"
-        - "/dockerfiles/volumes/wordpress-content/:/var/www/html/wp-content:rw"
-        - "/dockerfiles/volumes/wordpress-uploads/:/var/www/html/wp-content/uploads:rw"
+          #  - "/dockerfiles/volumes/wordpress-code/:/var/www/html:rw"
+          # - "/dockerfiles/volumes/wordpress-content/:/var/www/html/wp-content:rw"
+          # - "/dockerfiles/volumes/wordpress-uploads/:/var/www/html/wp-content/uploads:rw"
         #bb
         #- wordpress-code:/var/www/html
         #- type: volume
@@ -121,9 +121,9 @@ services:
         # - '9000:9000'
     volumes: 
         - "./config/php/php.ini:/usr/local/etc/php/php.ini:ro"
-        - "/dockerfiles/volumes/wordpress-code/:/var/www/html:rw"
-        - "/dockerfiles/volumes/wordpress-content/:/var/www/html/wp-content:rw" 
-        - "/dockerfiles/volumes/wordpress-uploads/:/var/www/html/wp-content/uploads:rw"
+          # - "/dockerfiles/volumes/wordpress-code/:/var/www/html:rw"
+          # - "/dockerfiles/volumes/wordpress-content/:/var/www/html/wp-content:rw" 
+          # - "/dockerfiles/volumes/wordpress-uploads/:/var/www/html/wp-content/uploads:rw"
 
         # - wordpress-code:/var/www/html
         #- type: volume
