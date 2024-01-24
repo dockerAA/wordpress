@@ -31,13 +31,8 @@ services:
         - frontend
     depends_on:
         - wordpress
-    deploy:
-      mode: global
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
+    restart: on-failure
+
   wordpress:
     image: wordpress:6.4-php8.1-fpm
     volumes: 
@@ -59,13 +54,8 @@ services:
         - backend
     depends_on:
         - database
-    deploy:
-      mode: global
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
+    restart: on-failure
+
   database:
     image: mariadb:11.2
     volumes:
@@ -80,15 +70,8 @@ services:
         - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
     networks:
         - backend
-    deploy:
-      replicas: 1
-      placement:
-        constraints: [node.role == manager]
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
+    restart: on-failure
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     ports:
@@ -99,12 +82,5 @@ services:
       - database
     environment:
         - PMA_ARBITRARY=1
-    deploy:
-      replicas: 1
-      placement:
-        constraints: [node.role == manager]
-      update_config:
-        parallelism: 1
-        delay: 10s
-      restart_policy:
-        condition: on-failure
+    restart: on-failure
+
