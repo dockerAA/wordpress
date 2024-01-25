@@ -1,0 +1,211 @@
+# https://docs.docker.com/compose/compose-file/#compose-file-structure-and-examples
+version: '3.4'
+
+networks:
+  frontend:
+  backend:
+
+volumes:
+  #! change log files
+  #! error.log -> /dev/stderr
+  #! access.log -> /dev/stdout
+  #2 nginx-logs:
+  #2   driver: local
+  #2   driver_opts:
+  #2     type: nfs
+  #2     o: addr=172.16.18.11,rw
+  #2     device: ":/docker01_mcA/docker/volumes/wordpress/nginx-logs"
+
+  wordpress-code:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=172.16.18.11,rw
+      device: ":/docker01_mcA/docker/volumes/wordpress/wordpress-code"
+  
+  wordpress-content:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=172.16.18.11,rw
+      device: ":/docker01_mcA/docker/volumes/wordpress/wordpress-content"
+
+  wordpress-uploads:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=172.16.18.11,rw
+      device: ":/docker01_mcA/docker/volumes/wordpress/wordpress-uploads"
+
+  #mariadb-data0:
+  #  driver: local
+
+  #! mariadb'nin Dockerfile dosyasında (https://hub.docker.com/_/mariadb/)
+  #! "chown -R mysql:mysql /var/lib/mysql"
+  #! komutu netapp nfs diskindeki ".snapshot" dizinini değiştiremediği için hata:
+  #! "chown: changing ownership of '/var/lib/mysql/.snapshot': read-only file system"
+  #! verip container çalışmıyor.
+  #! normalde netapp diskindeki ".snapshot" dizinini görmemesi lazım...
+  #mariadb-data:
+  #  driver: local
+  #  driver_opts:
+  #    type: nfs
+  #    o: addr=172.16.18.11,rw
+  #    device: ":/docker01_mcA/docker/volumes/wordpress/mariadb-data"
+
+secrets:
+  mysql_root_password:
+     file: .secrets/mysql_root_password
+  mysql_user:
+     file: .secrets/mysql_user
+  mysql_password:
+     file: .secrets/mysql_password
+
+services:
+  nginx:
+    image: nginx:1.15.7
+    volumes:
+        - "${PWD}/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro"
+        - "${PWD}/config/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro"
+        - "${PWD}/.sslc9ekey/bundle.crt:/etc/ssl/certs/server.crt:ro"
+        - "${PWD}/.sslc9ekey/IYTEJOKERSSLSertifika.key:/etc/ssl/certs/server.key:ro" 
+        - "${PWD}/.sslc9ekey/dhparam.pem:/etc/ssl/certs/dhparam.pem:ro"
+        # - wordpress-code:/var/www/html
+        - type: volume
+          source: wordpress-code
+          target: /var/www/html
+          volume:
+             nocopy: true
+        # - "${PWD}/code/wp-content:/var/www/html/wp-content"
+        - type: volume
+          source: wordpress-content
+          target: /var/www/html/wp-content
+          volume:
+             nocopy: true
+        # - "${PWD}/uploads:/var/www/html/wp-content/uploads"
+        - type: volume
+          source: wordpress-uploads
+          target: /var/www/html/wp-content/uploads
+          volume:
+             nocopy: true   
+        #1 - "${PWD}/logs/nginx:/var/log/nginx"
+        #2 - type: volume
+        #2   source: nginx-logs
+        #2   target: /var/log/nginx
+        #2   volume:
+        #2      nocopy: true
+    ports:
+        - "80:80"
+        - "443:443"
+    networks:
+        - frontend
+    depends_on:
+        - wordpress
+    deploy:
+      #  replicas: 3
+      mode: global
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  wordpress:
+    image: wordpress:4.9-php7.2-fpm
+    # ports:
+        # - '9000:9000'
+    volumes: 
+        - "${PWD}/config/php/php.ini:/usr/local/etc/php/php.ini:ro"
+        # - wordpress-code:/var/www/html
+        - type: volume
+          source: wordpress-code
+          target: /var/www/html
+          volume:
+             nocopy: true
+        # - ${PWD}/code/wordpress.4.9:/var/www/html
+        # - "${PWD}/code/wp-content:/var/www/html/wp-content"
+        - type: volume
+          source: wordpress-content
+          target: /var/www/html/wp-content
+          volume:
+             nocopy: true
+        # - "${PWD}/uploads:/var/www/html/wp-content/uploads"
+        - type: volume
+          source: wordpress-uploads
+          target: /var/www/html/wp-content/uploads
+          volume:
+             nocopy: true
+    secrets:
+        #- mysql_root_password
+        - mysql_user
+        - mysql_password
+    environment:
+        - WORDPRESS_DB_NAME=wpdbs
+        - WORDPRESS_TABLE_PREFIX=wp_
+        - WORDPRESS_DB_HOST=database
+        - WORDPRESS_DB_USER_FILE=/run/secrets/mysql_user
+        #- WORDPRESS_DB_PASSWORD=aqwe123
+        - WORDPRESS_DB_PASSWORD_FILE=/run/secrets/mysql_password
+    networks:
+        - frontend
+        - backend
+    depends_on:
+        - database
+    deploy:
+      #  replicas: 3
+      mode: global
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  database:
+    image: mariadb:10.2
+    # ports:
+        # - '3306:3306'
+    volumes:
+        # - mariadb-data0:/var/lib/mysql
+        - "/dockernfs/docker/volumes/wordpress/mariadb-data/:/var/lib/mysql:rw"
+        # - type: volume
+        #   source: mariadb-data
+        #   target: /var/lib/mysql/wpdb
+        #   volume:
+        #      nocopy: true
+    secrets:
+        - mysql_root_password
+        - mysql_user
+        - mysql_password
+    environment:
+        #- MYSQL_ROOT_PASSWORD=aqwe123
+        - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+        - MYSQL_USER_FILE=/run/secrets/mysql_user
+        - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
+    networks:
+        - backend
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - 9060:80
+    networks:
+      - backend
+    depends_on:
+      - database
+    environment:
+        - PMA_ARBITRARY=1
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
