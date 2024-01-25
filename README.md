@@ -2,7 +2,7 @@
 
 ## wordpress
 
-nginx + php-fpm \(wordpress\) + mariadb
+nginx + php-fpm \(wordpress\) + mariadb + let's encrpyt \(ssl,tls\)
 
 ## random password
 
@@ -15,7 +15,6 @@ Forward Secrecy & Diffie Hellman Ephemeral Parameters
  source: [https://raymii.org/s/tutorials/Strong\_SSL\_Security\_On\_nginx.html](https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html)   
  ssl test: [https://www.ssllabs.com/ssltest/](https://www.ssllabs.com/ssltest/)
 
-<<<<<<< HEAD
 =======
 # Strong SSL Security on nginx <br> 
 Forward Secrecy & Diffie Hellman Ephemeral Parameters <br>
@@ -32,4 +31,5 @@ ssl test: https://www.ssllabs.com/ssltest/
 2. wordpress:4.9-php7.2-fpm (# 9000:9000 ) <br>
 3. mariadb:10.2 (# 3306:3306 ) <br>
 4. phpmyadmin/phpmyadmin:latest ( 9070:80 ) <br>
->>>>>>> release/v0.3.0
+5. certbot/certbot:latest (https://letsencrypt.org) <br>
+release/v1.0.0
