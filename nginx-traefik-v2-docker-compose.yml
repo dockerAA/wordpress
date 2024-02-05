@@ -1,0 +1,51 @@
+#1. create a network with docker network create NETWORKNAME
+#2. Create letsencrypt directory for acme.json ie /docker/letsencrypt directory or somewhere else mkdir -p /docker/letsencrypt
+#3. I configured http -> https redirect
+# cat docker-compose.yml
+
+version: '3.3'
+
+services:
+  traefik2:
+    image: traefik
+    restart: always
+    command:
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=alperalbayrak@iyte.edu.tr"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - nginx
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./sslcertbottest/letsencrypt:/letsencrypt
+    container_name: traefik
+
+  nginx:
+    container_name: nginx
+    image: nginx
+    restart: always
+    networks:
+      - nginx
+    labels:
+      - traefik.enable=true
+      - traefik.port=80
+      - traefik.http.routers.nginx.rule=Host(`iytebilimkampi.iyte.edu.tr`)
+      - traefik.http.routers.nginx.entrypoints=websecure
+      - traefik.http.routers.nginx.tls=true
+      - traefik.http.routers.nginx.tls.certresolver=myresolver
+
+networks:
+  nginx:
+    #external: true
