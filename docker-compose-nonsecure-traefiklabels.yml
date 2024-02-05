@@ -1,0 +1,94 @@
+version: '3.4'
+
+networks:
+  frontend:
+  backend:
+  proxy:
+    name: proxy
+    external: true
+  
+secrets:  
+  mysql_root_password:
+     file: .secrets/mysql_root_password
+  mysql_user:
+     file: .secrets/mysql_user
+  mysql_password:
+     file: .secrets/mysql_password
+
+services:
+  webserver:
+    image: nginx:1.25
+    volumes:
+        - "./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro"
+        - "./config/nginx/default-nonsecure.conf:/etc/nginx/conf.d/default.conf:ro"
+        - "/dockerfiles/volumes/wordpress-code/:/var/www/html:rw"
+        - "/dockerfiles/volumes/wordpress-content/:/var/www/html/wp-content:rw"
+        - "/dockerfiles/volumes/wordpress-uploads/:/var/www/html/wp-content/uploads:rw"
+    expose:
+        - 80
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.webserver.rule=Host(`iytebilimkampi.iyte.edu.tr`, `www.iytebilimkampi.iyte.edu.tr`)"
+        - "traefik.http.routers.webserver.entrypoints=websecure"
+        - "traefik.http.routers.webserver.tls.certresolver=myresolver"
+    networks:
+        - frontend
+        - proxy  
+    depends_on:
+        - wordpress
+    restart: on-failure
+
+  wordpress:
+    image: wordpress:6.4-php8.1-fpm
+    volumes: 
+        - "./config/php/php.ini:/usr/local/etc/php/php.ini:ro"
+        - "/dockerfiles/volumes/wordpress-code/:/var/www/html:rw"
+        - "/dockerfiles/volumes/wordpress-content/:/var/www/html/wp-content:rw" 
+        - "/dockerfiles/volumes/wordpress-uploads/:/var/www/html/wp-content/uploads:rw"
+    secrets:
+        - mysql_user
+        - mysql_password
+    environment:
+        - WORDPRESS_DB_NAME=wpdbs
+        - WORDPRESS_TABLE_PREFIX=wp_
+        - WORDPRESS_DB_HOST=database
+        - WORDPRESS_DB_USER_FILE=/run/secrets/mysql_user
+        - WORDPRESS_DB_PASSWORD_FILE=/run/secrets/mysql_password
+    expose:
+        - 9000
+    networks:
+        - frontend
+        - backend
+    depends_on:
+        - database
+    restart: on-failure
+
+  database:
+    image: mariadb:11.2
+    volumes:
+        - "/dockerfiles/volumes/mariadb-data/:/var/lib/mysql:rw"
+    secrets:
+        - mysql_root_password
+        - mysql_user
+        - mysql_password
+    environment:
+        - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+        - MYSQL_USER_FILE=/run/secrets/mysql_user
+        - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
+    expose:
+        - 3306
+    networks:
+        - backend
+    restart: on-failure
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    ports:
+      - 9060:80
+    networks:
+      - backend
+    depends_on:
+      - database
+    environment:
+      - PMA_ARBITRARY=1
+    restart: on-failure
